@@ -1,0 +1,13 @@
+[Unit]
+Description=localhost.run %j tunnel to port %i
+After=network.target
+
+[Service]
+Type=exec
+RestartSec=60
+Restart=always
+ExecStartPre=-ssh-keygen -q -t rsa -b 2048 -q -N "" -f ${HOME}/.ssh/localhost.run.%j-%i.rsa
+ExecStart=/bin/sh -c "ssh -t -o IdentitiesOnly=true -i \"~/.ssh/localhost.run.%j-%i.rsa\" -R \"%j:80:localhost:%i\" localhost.run '{\"format\": \"json\"}' | while read LINE ; do echo $LINE ; echo $LINE | grep -zoP '\"address\":\s*\K[^\s,]*(?=\s*,)' | sed 's/^\"//;s/\"\W*$//' > /tmp/localhost.run.%j-%i.address; done"
+
+[Install]
+WantedBy=default.target
